@@ -594,6 +594,13 @@ main { position: relative; }
   stroke-linecap: round;
   opacity: 0.85;
 }
+/* Below 700px, cover-fit crops this photo hard enough that the mirror
+   runs sit entirely off the visible slice already; hide them outright
+   instead of animating six paths nobody can see. See the comment above
+   the svg in index.html. */
+@media (max-width: 700px) {
+  .flow-lines .flow-run--side { display: none; }
+}
 
 /* ============ Divider ============ */
 .divider-gold {
@@ -789,6 +796,19 @@ main { position: relative; }
   .review-card { padding: 3rem 3rem 0 0; }
   .review-card + .review-card { padding: 3rem 0 0 3rem; }
 }
+/* On a phone the grid drops to one column and loses the vertical hairline
+   between cards (see the min-width: 860px rule above), so a stack of quotes
+   read as one plain paragraph with nothing to tell them apart. The gold
+   mark gives each its own anchor at any width; it is a glyph, not a fill,
+   so it holds the "no cards, no fills" rule. */
+.review-quote::before {
+  content: "\201C";
+  display: block;
+  font-size: 2.5rem;
+  line-height: 1;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
 .review-quote {
   font-size: 1.0625rem;
   font-weight: 400;
@@ -800,7 +820,7 @@ main { position: relative; }
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: var(--track-wide);
-  color: var(--text-dim);
+  color: var(--accent);
   margin-top: auto;
 }
 

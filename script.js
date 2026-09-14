@@ -296,6 +296,35 @@
     document.addEventListener('touchstart', playOnFirstGesture, { once: true, passive: true });
   })();
 
+  /* ---------- Panel video: pause while off screen ----------
+     The block above starts every video playing as soon as the page loads,
+     hero included, so a service panel three screens down is already
+     decoding before anyone has scrolled near it. Fine on a desktop GPU,
+     not fine on a phone: two videos decoding at once for the length of the
+     visit is real, measurable jank on top of the scroll-driven parallax
+     and flow-line work below. The hero video stays exempt, it is meant to
+     be running the moment the page paints. */
+  (function () {
+    var panelVideos = [].slice.call(document.querySelectorAll('.panel-video'));
+    if (!panelVideos.length || !('IntersectionObserver' in window)) return;
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var video = entry.target;
+        if (entry.isIntersecting) {
+          if (video.paused) {
+            var playAttempt = video.play();
+            if (playAttempt && playAttempt.catch) playAttempt.catch(function () {});
+          }
+        } else if (!video.paused) {
+          video.pause();
+        }
+      });
+    }, { rootMargin: '200px 0px' });
+
+    panelVideos.forEach(function (video) { observer.observe(video); });
+  })();
+
   /* ---------- Panel photography: parallax and opening push-in ----------
      Each panel image is taller than its frame, so it can be moved inside
      it as the panel crosses the viewport without ever exposing an edge.
@@ -396,7 +425,14 @@
       svg.style.height = img.style.height;
     }
 
-    var runEls = [].slice.call(svg.querySelectorAll('.flow-run'));
+    /* .flow-run--side (the door-mirror runs) is display:none below 700px,
+       see styles.css: cover-fit crops them off the visible slice on a
+       phone. Skip them there instead of paying for dash-offset math on
+       every scroll frame for six paths nobody can see. */
+    var hideSideRuns = window.matchMedia('(max-width: 700px)').matches;
+    var runEls = [].slice.call(svg.querySelectorAll('.flow-run')).filter(function (g) {
+      return !(hideSideRuns && g.classList.contains('flow-run--side'));
+    });
     if (!runEls.length) return;
 
     var SVG_NS = 'http://www.w3.org/2000/svg';
