@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "grassendale-valet",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "8010", "C:/Projects/grassendale-valet"],
+      "port": 8010
+    }
+  ]
+}

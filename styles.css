@@ -1,0 +1,1086 @@
+/* ============ Tokens ============
+   Derived from the Ferrari reference: black void, white type, hairline
+   structure, zero radius, accent as a signal only. Gold takes the role
+   Rosso Corsa plays there, because gold is Grassendale's own brand.
+   #d4af37 is still a placeholder until the client confirms the exact hex
+   from the logo file. */
+:root {
+  --bg: #000000;
+  --surface: #181818;
+  --line: #303030;
+  --text: #ffffff;
+  --text-muted: #8f8f8f;
+  --text-dim: #666666;
+  --accent: #d4af37;
+  --accent-hover: #e8c766;
+  --accent-ink: #000000;
+
+  --font-sans: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+
+  --nav-height: 64px;
+  --motion: 1500ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --track-wide: 0.09em;
+  --track-mid: 0.06em;
+  --page-max: 1440px;
+}
+
+/* ============ Reset ============ */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  margin: 0;
+}
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+img { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+#home, #services, #gallery, #reviews, #enquire, #area {
+  scroll-margin-top: var(--nav-height);
+}
+
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* ============ Type utilities ============
+   Tracking widens as size shrinks, the inverted relationship that carries
+   the whole reference: big headlines sit tight, micro labels breathe. */
+.eyebrow {
+  display: block;
+  margin-bottom: 1.25rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+}
+
+.section-heading {
+  font-size: clamp(1.75rem, 2.6vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+}
+
+/* ============ Buttons and links ============ */
+.btn {
+  display: inline-block;
+  border: 1px solid transparent;
+  padding: 1.05rem 2.2rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 200ms var(--ease), color 200ms var(--ease), border-color 200ms var(--ease);
+}
+/* The single filled surface in the system. Everything else is text. */
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--line);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Text plus arrow, no button chrome. The arrow is the affordance. */
+.service-link {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text);
+  transition: color 200ms var(--ease);
+}
+.service-link::after {
+  content: " \2192";
+  display: inline-block;
+  transition: transform 200ms var(--ease);
+}
+.service-link:hover { color: var(--accent); }
+.service-link:hover::after { transform: translateX(4px); }
+
+/* Signature control from the reference: a label beside a hairline circle
+   holding an arrow. No filled chrome, the circle is the affordance. */
+.link-circle {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text);
+  transition: color 200ms var(--ease);
+}
+.link-circle-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--text-muted);
+  border-radius: 9999px;
+  font-size: 1rem;
+  line-height: 1;
+  transition: border-color 250ms var(--ease), background 250ms var(--ease), color 250ms var(--ease), transform 250ms var(--ease);
+}
+.link-circle:hover { color: var(--accent); }
+.link-circle:hover .link-circle-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  transform: translateX(5px);
+}
+
+/* ============ Reveal animation ============
+   Hidden state is applied by script.js (.js-hidden), never by default
+   here, so the page stays fully visible if the script fails to load. */
+/* The reveal is a one-shot animation, not a transition, so a control that
+   also carries a reveal class keeps its own 200 to 500 ms hover timing;
+   a transition here would override that and make hovers crawl at 1.5 s. */
+.reveal-heading.js-hidden { opacity: 0; transform: translateY(16px); }
+.reveal-block.js-hidden { opacity: 0; transform: translateY(12px); }
+.reveal-heading.is-visible { animation: revealHeading var(--motion) var(--ease) both; }
+.reveal-block.is-visible { animation: revealBlock var(--motion) var(--ease) both; }
+@keyframes revealHeading {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes revealBlock {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Headlines wipe up line by line from behind their own edge, rather than
+   fading. Each .line clips, the inner span is what actually moves. */
+.reveal-lines .line {
+  display: block;
+  overflow: hidden;
+}
+.reveal-lines .line > span {
+  display: block;
+  transition: transform 1500ms var(--ease);
+}
+.reveal-lines.js-hidden .line > span { transform: translateY(104%); }
+.reveal-lines .line:nth-child(2) > span { transition-delay: 110ms; }
+.reveal-lines .line:nth-child(3) > span { transition-delay: 220ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-heading, .reveal-block { opacity: 1; transform: none; animation: none; }
+  .reveal-lines .line > span { transform: none; transition: none; }
+}
+
+/* ============ Media placeholder ============
+   Any <img> whose file is missing falls back to a label naming the shot
+   that belongs there, applied by script.js on the load error. */
+.media-slot {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface);
+}
+.media-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+.media-slot-label {
+  display: none;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1.5rem;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  color: var(--text-dim);
+  background: var(--surface);
+}
+.media-slot.is-missing img { display: none; }
+.media-slot.is-missing .media-slot-label { display: flex; }
+
+/* ============ Nav ============
+   Flat and borderless over the hero, signalled by colour rather than
+   rules. Once past the hero it gains the void background and one hairline. */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition: background 400ms var(--ease), border-color 400ms var(--ease);
+}
+.nav--scrolled {
+  background: var(--bg);
+  border-bottom-color: var(--line);
+}
+.nav-inner {
+  min-height: var(--nav-height);
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+.nav-name {
+  flex: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text);
+}
+.nav-links {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  flex: none;
+  font-size: 0.6875rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text-muted);
+  white-space: nowrap;
+  padding: 0.3rem 0;
+  transition: color 200ms var(--ease);
+}
+.nav-links a:hover { color: var(--text); }
+.nav-links a.is-active { color: var(--accent); }
+
+/* Ghost text link, not a fill: the hero "Message to book" button is the
+   one filled gold surface on the page. */
+.nav-cta {
+  flex: none;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text);
+  padding: 0.3rem 0;
+  border-bottom: 1px solid transparent;
+  transition: color 200ms var(--ease), border-color 200ms var(--ease);
+}
+.nav-cta:hover { color: var(--accent); border-color: var(--accent); }
+
+@media (max-width: 960px) {
+  .nav-inner { gap: 1rem; padding: 0 1.25rem; }
+  .nav-links { display: none; }
+  .nav-name { font-size: 0.75rem; letter-spacing: 0.12em; }
+  .nav-cta { margin-left: auto; }
+}
+
+@media (min-width: 961px) and (max-width: 1200px) {
+  .nav-links { gap: 1.5rem; }
+}
+
+/* ============ Panels ============
+   The reference is built from full-viewport panels: a photograph filling
+   the screen with the type sitting low over it, alternating with near
+   empty black voids that carry nothing but a centred headline. Both
+   variants live here, because that alternation is the whole rhythm. */
+.panel {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.panel-media {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  overflow: hidden;
+}
+.panel-media img,
+.panel-media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+  will-change: transform;
+}
+/* Scrim, not decoration: the type sits directly on the photograph and
+   needs a floor to stay legible, and the nav needs one at the top. */
+.panel-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.96) 0%, rgba(0, 0, 0, 0.88) 22%, rgba(0, 0, 0, 0.45) 48%, rgba(0, 0, 0, 0.1) 72%, rgba(0, 0, 0, 0) 88%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.55) 32%, rgba(0, 0, 0, 0) 62%),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 20%);
+}
+.panel--void .panel-media::after { display: none; }
+.panel-body {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 1.75rem 7rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.75rem;
+}
+@media (min-width: 900px) {
+  .panel-body { padding: 0 4rem 8rem; }
+}
+
+/* The void variant: centred, vertically middled, nothing but type. */
+.panel--void { align-items: center; }
+.panel-body--center {
+  align-items: center;
+  text-align: center;
+  padding-top: 8rem;
+  padding-bottom: 8rem;
+  max-width: 46rem;
+}
+
+.panel-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+}
+/* Headline held to roughly 3x body, the ratio measured on the reference.
+   The photograph carries the scale; the type does not shout over it. */
+.panel-title {
+  font-size: clamp(2.5rem, 3.4vw, 2.75rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: var(--text);
+  max-width: 22ch;
+}
+.panel-body--center .panel-title { max-width: 20ch; }
+.panel-copy {
+  font-size: 0.9375rem;
+  max-width: 42ch;
+  color: var(--text-muted);
+}
+
+/* ============ Hero ============
+   Moving footage edge to edge, one headline centred in the lower third,
+   one control under it, nothing else. The video sits above the fallback
+   photograph; script.js hides the photograph once the video is playing,
+   so a browser that refuses autoplay simply keeps the still. */
+.hero-video,
+.panel-video { transition: opacity var(--motion) var(--ease); }
+.panel-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.panel-media img.is-fallback-hidden { visibility: hidden; }
+
+.panel-body--hero {
+  align-items: center;
+  text-align: center;
+  gap: 2rem;
+}
+/* One line at desktop; on a phone it breaks at the comma into two. The
+   break is a real <br>, hidden until it is needed, so the line splits in
+   exactly the right place instead of wherever the words happen to wrap. */
+.panel-body--hero .panel-title { max-width: none; }
+.hero-break { display: none; }
+@media (min-width: 960px) {
+  .panel-body--hero .panel-title { white-space: nowrap; }
+}
+@media (max-width: 480px) {
+  .hero-break { display: inline; }
+}
+.hero .btn { margin-top: 0; }
+
+/* Below 480px the headline drops a size so "premium valeting," and "at
+   your doorstep." each set on their own clean line instead of wrapping
+   ragged across three. */
+@media (max-width: 480px) {
+  .panel-body--hero .panel-title { font-size: 1.7rem; }
+}
+
+/* Trust row that used to sit on the hero photograph, now the last line of
+   the intro void: three uppercase facts with one hairline below them. */
+.intro-facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 2.5rem;
+  width: 100%;
+  margin-top: 1.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  color: var(--text-muted);
+}
+
+/* Centred under the button, static: a single 300ms nudge on hover, no
+   infinite drift (that would be a third motion speed on the page). */
+.hero-chevron {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 2.5rem;
+  transform: translateX(-50%);
+  color: var(--text-muted);
+  transition: color 200ms var(--ease), transform 300ms var(--ease);
+}
+.hero-chevron:hover { color: var(--accent); transform: translateX(-50%) translateY(5px); }
+@media (min-width: 900px) {
+  .hero-chevron { bottom: 3rem; }
+}
+
+/* Invisible proxy matching the hero's own box, used only so script.js has
+   a stable "scrolled past the hero" signal. */
+main { position: relative; }
+#heroEnd {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100vh;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ============ Services ============ */
+.services { background: var(--bg); }
+/* One tracked strip, not a bulleted column: the reference never stacks a
+   list on a media frame, and seven gold bullets were seven accent hits
+   on one screen. Items are separated by a dim middot instead. */
+.service-includes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  line-height: 1.9;
+  color: var(--text-muted);
+  max-width: 60ch;
+}
+.service-includes li { position: relative; }
+.service-includes li:not(:last-child)::after {
+  content: "\00b7";
+  margin: 0 0.75rem;
+  color: var(--text-dim);
+}
+.services-disclaimer {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 4rem 1.75rem;
+  text-align: center;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  line-height: 2;
+  color: var(--text-dim);
+  border-top: 1px solid var(--line);
+}
+
+/* ============ Flow chapter ============
+   Reference mechanism 7: a drawn graphic over a still photograph, where
+   the graphic is what moves. The svg sits above the scrim and below the
+   type. script.js gives it the photograph's box and parallax transform,
+   so the lines stay locked to the car; here it simply fills the frame,
+   which is also where it lands if the script never runs. */
+.flow-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+/* Each run is a .flow-run group of two or three .flow-seg paths sharing
+   endpoints; stroke-width is set per segment inline (2.6 to 3 units at
+   the windscreen, 1.2 by the bumper) so the water reads heavy then thin.
+   One unit is about 1.45 px on a laptop, 1.13 px at 375 wide. */
+.flow-lines .flow-seg {
+  fill: none;
+  stroke: #ffffff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.4;
+}
+.flow-lines .is-gold .flow-seg {
+  stroke: var(--accent);
+  opacity: 0.8;
+}
+/* Drip dot at the end of a tail segment: hidden until script.js fades it
+   in as the tail extends past halfway. */
+.flow-lines .flow-drip {
+  fill: #ffffff;
+  opacity: 0;
+}
+.flow-lines .is-gold .flow-drip {
+  fill: var(--accent);
+}
+/* Body under each gold run: the run's full path, wide and faint. */
+.flow-lines .flow-under {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.12;
+}
+/* Light that travels the gold runs as the panel scrolls past centre. */
+.flow-lines .flow-light {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+/* ============ Divider ============ */
+.divider-gold {
+  background: var(--bg);
+  height: 1px;
+  border-top: 1px solid var(--line);
+}
+
+/* ============ Gallery ============
+   Masonry via CSS columns, not a fixed-cell grid: every photo keeps its
+   own natural aspect ratio and shows in full, nothing forced into a crop
+   it doesn't fit. */
+.gallery {
+  padding: 7rem 1.75rem;
+  background: var(--bg);
+}
+.gallery-head {
+  max-width: var(--page-max);
+  margin: 0 auto 3.5rem;
+}
+.gallery-grid {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  column-count: 1;
+  column-gap: 1rem;
+}
+/* Two columns hold until the screen is genuinely wide. Three columns at
+   laptop size left the photos small next to the full-viewport panels
+   above them, and with five items the shortest column ran out and left a
+   hole. */
+@media (min-width: 560px) {
+  .gallery-grid { column-count: 2; }
+}
+@media (min-width: 1400px) {
+  .gallery-grid { column-count: 3; }
+}
+.gallery-item {
+  position: relative;
+  break-inside: avoid;
+  margin-bottom: 1rem;
+  background: var(--surface);
+}
+.gallery-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: opacity 400ms var(--ease);
+}
+.gallery-item:hover img { opacity: 0.72; }
+.gallery-more {
+  max-width: var(--page-max);
+  margin: 3.5rem auto 0;
+  text-align: center;
+}
+
+/* ============ Before / after ============ */
+.before-after {
+  padding: 7rem 1.75rem;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+.before-after-inner {
+  max-width: 46rem;
+  margin: 0 auto;
+  text-align: center;
+}
+.before-after .section-heading { margin-bottom: 3rem; }
+
+.ba-slider {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  aspect-ratio: 428 / 578;
+  cursor: ew-resize;
+  user-select: none;
+  touch-action: none;
+}
+.ba-media { position: absolute; inset: 0; }
+.ba-media .media-slot { position: absolute; inset: 0; }
+.ba-before {
+  clip-path: inset(0 calc(100% - var(--pos, 50%)) 0 0);
+}
+.ba-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--pos, 50%);
+  width: 0;
+  border-left: 1px solid var(--accent);
+  transform: translateX(-0.5px);
+  pointer-events: none;
+}
+/* The one round element the system allows. */
+.ba-handle-grip {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  border-radius: 9999px;
+}
+.ba-handle-grip::before,
+.ba-handle-grip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+.ba-handle-grip::before {
+  left: 11px;
+  border-right: 6px solid var(--accent-ink);
+  transform: translateY(-50%);
+}
+.ba-handle-grip::after {
+  right: 11px;
+  border-left: 6px solid var(--accent-ink);
+  transform: translateY(-50%);
+}
+
+/* ============ Why ============ */
+.why {
+  background: var(--bg);
+  padding: 9rem 1.75rem;
+  border-top: 1px solid var(--line);
+}
+.why-inner {
+  max-width: 52rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3rem;
+  text-align: center;
+}
+.why-quote {
+  font-size: clamp(1.4rem, 2.4vw + 0.7rem, 2.4rem);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.why-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem 3rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--line);
+  width: 100%;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text-muted);
+}
+
+/* ============ Reviews ============
+   Flat blocks on the void, separated by hairlines. No cards, no fills. */
+.reviews {
+  padding: 7rem 1.75rem;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.reviews-head {
+  max-width: var(--page-max);
+  margin: 0 auto 4rem;
+}
+.reviews-grid {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+@media (min-width: 860px) {
+  .reviews-grid { grid-template-columns: 1fr 1fr; }
+  .review-card + .review-card { border-left: 1px solid var(--line); }
+}
+.review-card {
+  border-top: 1px solid var(--line);
+  padding: 3rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+@media (min-width: 860px) {
+  .review-card { padding: 3rem 3rem 0 0; }
+  .review-card + .review-card { padding: 3rem 0 0 3rem; }
+}
+.review-quote {
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text);
+}
+.review-attr {
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text-dim);
+  margin-top: auto;
+}
+
+/* ============ Enquiry ============ */
+.enquire {
+  padding: 7rem 1.75rem;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+.enquire-head {
+  max-width: 46rem;
+  margin: 0 auto 4rem;
+  text-align: center;
+}
+.enquire-intro {
+  margin-top: 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+.enquire-layout {
+  max-width: 64rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3.5rem;
+}
+@media (min-width: 860px) {
+  .enquire-layout { grid-template-columns: 1.25fr 1fr; gap: 5rem; }
+}
+
+/* Inputs are a single bottom rule, no box, no fill. */
+.field { margin-bottom: 2.5rem; }
+.field label,
+.option-group legend {
+  display: block;
+  margin-bottom: 0.9rem;
+  padding: 0;
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text-dim);
+}
+.field input, .field textarea {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--text);
+  padding: 0.6rem 0;
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  transition: border-color 200ms var(--ease);
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--text-dim); }
+.field input:focus, .field textarea:focus {
+  border-bottom-color: var(--accent);
+  outline: none;
+}
+.field textarea { resize: vertical; }
+
+.option-group { border: 0; padding: 0; margin: 0 0 2.5rem; }
+/* Fixed two columns, not auto-fit: the hairline grid is drawn by the
+   container's background showing through 1px gaps, so a half-filled last
+   row would leave a bare grey block where a tile should be. Four options
+   in two columns always fill the box exactly. */
+.option-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.option-tile { position: relative; display: block; }
+.option-tile input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.option-tile span {
+  display: block;
+  text-align: center;
+  padding: 1rem 0.6rem;
+  background: var(--surface);
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 200ms var(--ease), color 200ms var(--ease);
+}
+.option-tile span:hover { color: var(--text); }
+.option-tile input:checked + span {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.option-tile input:focus-visible + span {
+  outline: 1px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.enquiry-error {
+  min-height: 1.4em;
+  margin-bottom: 1.5rem;
+  color: var(--accent);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+}
+.enquiry-submit { width: 100%; }
+
+.enquiry-summary { display: flex; flex-direction: column; }
+.enquiry-summary-label {
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text-dim);
+  margin-bottom: 1.5rem;
+}
+.enquiry-summary-text {
+  margin: 0;
+  padding: 1.75rem;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  line-height: 2;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.enquiry-fallback { margin-top: 2rem; }
+.enquiry-fallback-note {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  margin-bottom: 1.25rem;
+}
+.enquiry-fallback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+.enquiry-copy-status {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  color: var(--accent);
+}
+.enquiry-note {
+  max-width: 64rem;
+  margin: 4rem auto 0;
+  padding-top: 2.5rem;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  line-height: 2;
+}
+
+/* ============ Area ============ */
+.area {
+  padding: 7rem 1.75rem;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.area-inner {
+  max-width: 46rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* ============ Contact ============ */
+.contact {
+  padding: 7rem 1.75rem;
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+}
+.contact-inner {
+  max-width: 46rem;
+  margin: 0 auto;
+  text-align: center;
+}
+.contact-list { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.contact-list a {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text);
+  transition: color 200ms var(--ease);
+}
+.contact-list a:hover { color: var(--accent); }
+
+/* ============ Footer ============ */
+.footer {
+  padding: 3.5rem 1.75rem 3rem;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+.footer-row {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2.5rem;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text-muted);
+}
+.footer-row a { transition: color 200ms var(--ease); }
+.footer-row a:hover { color: var(--accent); }
+.footer-claim,
+.footer-note {
+  max-width: var(--page-max);
+  margin-left: auto;
+  margin-right: auto;
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  line-height: 2;
+  color: var(--text-dim);
+}
+.footer-claim { margin-top: 2rem; }
+.footer-note { margin-top: 0.75rem; }
+
+/* ============ Fixed contact button ============
+   Hidden while the hero is in view, so the hero frame keeps its single
+   gold fill (the "Message to book" button). script.js adds .is-visible
+   once #heroEnd has scrolled past. */
+/* Ghost, not a fill: the page allows exactly one filled gold surface,
+   the hero button. The chip keeps its place with a hairline instead. */
+.contact-fab {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 60;
+  padding: 1rem 1.4rem;
+  background: var(--bg);
+  border: 1px solid var(--text-muted);
+  color: var(--text);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  opacity: 0;
+  pointer-events: none;
+  transition: color 200ms var(--ease), border-color 200ms var(--ease), opacity 300ms var(--ease);
+}
+.contact-fab.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.contact-fab:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ============ Gallery captions ============
+   Reference mechanism 6: the label sits bottom-left ON the image, never
+   beneath it. A short bottom scrim keeps it legible on bright paint. */
+.gallery-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 2.5rem 1rem 0.9rem;
+  font-size: 0.625rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-wide);
+  color: var(--text);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+

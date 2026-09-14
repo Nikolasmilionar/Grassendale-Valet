@@ -1,0 +1,14 @@
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
+
+CLAUDE.md
+raw-photos/
+
+# raw generation artefacts, site uses only the loop files and posters
+video/hero.mp4
+video/foam.mp4
+video/foam-v1.mp4
+video/foam-v1-poster.webp
+video/job-*
