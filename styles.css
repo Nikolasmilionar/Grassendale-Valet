@@ -390,6 +390,16 @@ button:focus-visible,
   padding-bottom: 8rem;
   max-width: 46rem;
 }
+/* "We come to you" was a full 100vh void, the same height as a service
+   panel either side of it, for three lines of type and a fact row. Cut it
+   to a content-height strip, the way contact and reviews already are. */
+#intro {
+  min-height: 0;
+}
+#intro .panel-body--center {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
 
 .panel-label {
   font-size: 0.6875rem;
@@ -415,6 +425,44 @@ button:focus-visible,
   max-width: 42ch;
   color: var(--text-muted);
 }
+/* The five-word headline ("Rinse. Foam. Wheels. Scrub. Dry.") used to be
+   the only cue this is an ordered process; the paragraph under it reads
+   as one undifferentiated block. Gold hairline boxes (matching why-list)
+   plus a numbered order and an arrow between them make the sequence
+   readable at a glance instead of requiring the reader to parse a
+   sentence for it. */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  width: 100%;
+  max-width: 42rem;
+  margin-top: 0.5rem;
+}
+.steps li { display: flex; align-items: center; }
+.steps li:not(:last-child)::after {
+  content: "\2192";
+  margin: 0 0.6rem;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+.step-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--accent);
+  padding: 0.75rem 1.1rem;
+  margin: 0.35rem 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-mid);
+  color: var(--text);
+  white-space: nowrap;
+}
+.step-num { color: var(--accent); font-size: 0.6875rem; }
 
 /* ============ Hero ============
    Moving footage edge to edge, one headline centred in the lower third,
@@ -625,7 +673,8 @@ main { position: relative; }
   max-width: var(--page-max);
   margin: 0 auto;
   column-count: 1;
-  column-gap: 1rem;
+  column-gap: 1.5rem;
+  padding: 0.5rem;
 }
 /* Two columns hold until the screen is genuinely wide. Three columns at
    laptop size left the photos small next to the full-viewport panels
@@ -637,19 +686,48 @@ main { position: relative; }
 @media (min-width: 1400px) {
   .gallery-grid { column-count: 3; }
 }
+/* A dead-straight masonry column read as generic, and none of these
+   photos can be cropped to fit a tidier grid without losing what makes
+   them real (they're phone shots, 630 to 870px wide, not a shoot) - so
+   the mess is staged instead: a small fixed tilt and vertical drift per
+   tile, taped-photo style, not a forced crop. Straightens on hover so it
+   never fights being read.
+
+   The tilt lives on .gallery-frame, one level in from .gallery-item,
+   because .gallery-item carries reveal-block: its scroll-in animation
+   ends by setting transform to none with fill-mode both, which would
+   permanently win over any transform written on the same element. */
 .gallery-item {
   position: relative;
   break-inside: avoid;
-  margin-bottom: 1rem;
+  margin: 0 0 2rem;
+  overflow: visible; /* .media-slot sets overflow:hidden, which would clip the tilted .gallery-frame at its corners */
+}
+.gallery-frame {
+  position: relative;
+  overflow: hidden;
   background: var(--surface);
+  border: 1px solid var(--line);
+  transition: transform 300ms var(--ease), border-color 300ms var(--ease);
+}
+.gallery-item:nth-child(5n+1) .gallery-frame { transform: rotate(-1.6deg); }
+.gallery-item:nth-child(5n+2) .gallery-frame { transform: rotate(1.1deg) translateY(1rem); }
+.gallery-item:nth-child(5n+3) .gallery-frame { transform: rotate(-0.8deg) translateY(-0.6rem); }
+.gallery-item:nth-child(5n+4) .gallery-frame { transform: rotate(1.8deg); }
+.gallery-item:nth-child(5n+5) .gallery-frame { transform: rotate(-1.1deg) translateY(0.8rem); }
+.gallery-item:hover .gallery-frame {
+  transform: rotate(0deg) translateY(0) scale(1.03);
+  border-color: var(--accent);
+  z-index: 2;
 }
 .gallery-item img {
   display: block;
   width: 100%;
   height: auto;
-  transition: opacity 400ms var(--ease);
 }
-.gallery-item:hover img { opacity: 0.72; }
+@media (prefers-reduced-motion: reduce) {
+  .gallery-frame { transform: none !important; transition: none; }
+}
 .gallery-more {
   max-width: var(--page-max);
   margin: 3.5rem auto 0;
