@@ -681,9 +681,15 @@ main { position: relative; }
 }
 
 /* ============ Gallery ============
-   Masonry via CSS columns, not a fixed-cell grid: every photo keeps its
-   own natural aspect ratio and shows in full, nothing forced into a crop
-   it doesn't fit. */
+   A plain CSS grid, row by row in normal reading order. This used to be
+   CSS-column masonry so every photo could keep its own aspect ratio, but
+   with only five photos the column algorithm reads top-to-bottom within
+   each column before moving to the next: at three columns wide the visual
+   order came out as 1/2, 3/4, 5, which looked scrambled and left the last
+   column a lone photo with a wall of empty space under it. A grid lays
+   items left to right, top to bottom instead, and each row still sizes
+   itself to its own tallest photo (grid-auto-rows: auto is per-row, not
+   one fixed cell height), so photos still show uncropped. */
 .gallery {
   padding: 7rem 1.75rem;
   background: var(--bg);
@@ -695,21 +701,22 @@ main { position: relative; }
 .gallery-grid {
   max-width: var(--page-max);
   margin: 0 auto;
-  column-count: 1;
-  column-gap: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 1.5rem;
   padding: 0.5rem;
 }
 /* Two columns hold until the screen is genuinely wide. Three columns at
    laptop size left the photos small next to the full-viewport panels
-   above them, and with five items the shortest column ran out and left a
-   hole. */
+   above them. */
 @media (min-width: 560px) {
-  .gallery-grid { column-count: 2; }
+  .gallery-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (min-width: 1400px) {
-  .gallery-grid { column-count: 3; }
+  .gallery-grid { grid-template-columns: repeat(3, 1fr); }
 }
-/* Straight masonry, every photo at rest exactly as shot. The frame is a
+/* Straight layout, every photo at rest exactly as shot. The frame is a
    hairline, not a fill, and only shows its gold edge plus a small zoom
    on hover, the site's usual affordance for "this is a control" rather
    than a tilt. .gallery-frame stays one level in from .gallery-item: the
@@ -718,8 +725,13 @@ main { position: relative; }
    over a transform written on that same element. */
 .gallery-item {
   position: relative;
-  break-inside: avoid;
-  margin: 0 0 1rem;
+  /* Overrides .media-slot's height:100%, meant for boxes with a parent of
+     a fixed height. A grid row's height is auto here (set by its tallest
+     photo), and 100% of that still resolves and stretches every shorter
+     photo in the row to match it, showing bare .media-slot background
+     under the actual image. The item should just be as tall as its own
+     photo. */
+  height: auto;
 }
 .gallery-frame {
   position: relative;
