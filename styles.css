@@ -331,7 +331,17 @@ button:focus-visible,
    variants live here, because that alternation is the whole rhythm. */
 .panel {
   position: relative;
+  /* 100svh (small viewport height), falling back to 100vh where svh isn't
+     supported: on a phone, showing/hiding the address bar as you scroll
+     changes window.innerHeight, and plain vh resizes right along with it.
+     That moved the ground under the flow-lines' scroll math on every
+     reversal (a real jump, not a visual glitch) and, worse, could shrink
+     the distance the panel travels through mid-scroll enough that later
+     runs' start/end windows (see script.js) never opened at all. svh is
+     pinned to the smallest possible viewport, so the panel's own height
+     stops moving regardless of what the browser chrome does. */
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -740,7 +750,8 @@ main { position: relative; }
   border: 1px solid var(--line);
   transition: transform 300ms var(--ease), border-color 300ms var(--ease);
 }
-.gallery-item:hover .gallery-frame {
+.gallery-item:hover .gallery-frame,
+.gallery-item:active .gallery-frame {
   transform: scale(1.03);
   border-color: var(--accent);
   z-index: 2;
