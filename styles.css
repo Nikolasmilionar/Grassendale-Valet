@@ -400,6 +400,16 @@ button:focus-visible,
   padding-top: 5rem;
   padding-bottom: 5rem;
 }
+/* Same fix, same reason: the exterior-valet step-by-step void was another
+   full 100vh panel around what is now five compact boxes, leaving a lot
+   of black either side of them. */
+#process-copy {
+  min-height: 0;
+}
+#process-copy .panel-body--center {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
 
 .panel-label {
   font-size: 0.6875rem;
@@ -489,6 +499,19 @@ button:focus-visible,
    break is a real <br>, hidden until it is needed, so the line splits in
    exactly the right place instead of wherever the words happen to wrap. */
 .panel-body--hero .panel-title { max-width: none; }
+/* Trial, hero only: a display face with real automotive lineage instead
+   of Inter. Big Shoulders Display draws on Chicago ironwork and
+   skyscraper lettering ("city of the big shoulders"), condensed and
+   engineered rather than editorial. Condensed letterforms read bigger at
+   the same line length, which is also the fix for the headline feeling
+   small: the clamp below is close to double the site's base panel-title.
+   Wide tracking is for the body face; this one wants it tight instead. */
+.panel-body--hero .panel-title {
+  font-family: "Big Shoulders Display", Inter, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 700;
+  font-size: clamp(3.5rem, 7vw, 6rem);
+  letter-spacing: 0.01em;
+}
 .hero-break { display: none; }
 @media (min-width: 960px) {
   .panel-body--hero .panel-title { white-space: nowrap; }
@@ -502,7 +525,7 @@ button:focus-visible,
    your doorstep." each set on their own clean line instead of wrapping
    ragged across three. */
 @media (max-width: 480px) {
-  .panel-body--hero .panel-title { font-size: 1.7rem; }
+  .panel-body--hero .panel-title { font-size: 2.75rem; }
 }
 
 /* Trust row that used to sit on the hero photograph, now the last line of
@@ -686,22 +709,17 @@ main { position: relative; }
 @media (min-width: 1400px) {
   .gallery-grid { column-count: 3; }
 }
-/* A dead-straight masonry column read as generic, and none of these
-   photos can be cropped to fit a tidier grid without losing what makes
-   them real (they're phone shots, 630 to 870px wide, not a shoot) - so
-   the mess is staged instead: a small fixed tilt and vertical drift per
-   tile, taped-photo style, not a forced crop. Straightens on hover so it
-   never fights being read.
-
-   The tilt lives on .gallery-frame, one level in from .gallery-item,
-   because .gallery-item carries reveal-block: its scroll-in animation
-   ends by setting transform to none with fill-mode both, which would
-   permanently win over any transform written on the same element. */
+/* Straight masonry, every photo at rest exactly as shot. The frame is a
+   hairline, not a fill, and only shows its gold edge plus a small zoom
+   on hover, the site's usual affordance for "this is a control" rather
+   than a tilt. .gallery-frame stays one level in from .gallery-item: the
+   item carries reveal-block, whose scroll-in animation ends by fixing
+   transform to none with fill-mode both, which would permanently win
+   over a transform written on that same element. */
 .gallery-item {
   position: relative;
   break-inside: avoid;
-  margin: 0 0 2rem;
-  overflow: visible; /* .media-slot sets overflow:hidden, which would clip the tilted .gallery-frame at its corners */
+  margin: 0 0 1rem;
 }
 .gallery-frame {
   position: relative;
@@ -710,13 +728,8 @@ main { position: relative; }
   border: 1px solid var(--line);
   transition: transform 300ms var(--ease), border-color 300ms var(--ease);
 }
-.gallery-item:nth-child(5n+1) .gallery-frame { transform: rotate(-1.6deg); }
-.gallery-item:nth-child(5n+2) .gallery-frame { transform: rotate(1.1deg) translateY(1rem); }
-.gallery-item:nth-child(5n+3) .gallery-frame { transform: rotate(-0.8deg) translateY(-0.6rem); }
-.gallery-item:nth-child(5n+4) .gallery-frame { transform: rotate(1.8deg); }
-.gallery-item:nth-child(5n+5) .gallery-frame { transform: rotate(-1.1deg) translateY(0.8rem); }
 .gallery-item:hover .gallery-frame {
-  transform: rotate(0deg) translateY(0) scale(1.03);
+  transform: scale(1.03);
   border-color: var(--accent);
   z-index: 2;
 }
