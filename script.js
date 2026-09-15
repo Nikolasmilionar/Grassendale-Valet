@@ -486,26 +486,8 @@
     svg.insertBefore(under, svg.firstChild);
     svg.appendChild(lights);
 
-    var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-
     function setSegOffset(seg, offset) {
       seg.path.style.strokeDashoffset = offset.toFixed(1);
-    }
-
-    /* Reduced motion: everything drawn, nothing travelling. */
-    function drawStatic() {
-      runs.forEach(function (run) {
-        run.segs.forEach(function (seg) {
-          seg.path.style.strokeDasharray = '';
-          seg.path.style.strokeDashoffset = '';
-        });
-        if (run.body) {
-          run.body.style.strokeDasharray = '';
-          run.body.style.strokeDashoffset = '';
-        }
-        if (run.light) run.light.style.strokeDashoffset = LIGHT;
-        if (run.drip) run.drip.style.opacity = run.tailSeg ? 1 : 0;
-      });
     }
 
     function armHidden() {
@@ -537,7 +519,6 @@
       ticking = false;
       if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
       svg.style.transform = img.style.transform;
-      if (motionQuery.matches) return;
       var vh = window.innerHeight;
       var rect = panel.getBoundingClientRect();
       if (rect.bottom < -200 || rect.top > vh + 200) return;
@@ -586,21 +567,6 @@
       }, 120);
     }
 
-    function applyMotionPreference() {
-      if (motionQuery.matches) {
-        drawStatic();
-      } else {
-        armHidden();
-        update();
-      }
-    }
-
-    if (motionQuery.addEventListener) {
-      motionQuery.addEventListener('change', applyMotionPreference);
-    } else if (motionQuery.addListener) {
-      motionQuery.addListener(applyMotionPreference);
-    }
-
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll);
     window.addEventListener('load', update);
@@ -610,7 +576,12 @@
     } else {
       img.addEventListener('load', update);
     }
-    applyMotionPreference();
+    /* This drawn effect always animates, on purpose: it is the site's one
+       signature flourish, and the client wants every visitor to see it
+       draw in, so it does not defer to prefers-reduced-motion the way the
+       rest of the page's motion (parallax, reveal-on-scroll) does. */
+    armHidden();
+    update();
   })();
 
   /* ---------- Reveal on scroll ---------- */
