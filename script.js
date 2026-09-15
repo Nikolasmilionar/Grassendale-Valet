@@ -404,14 +404,18 @@
   /* ---------- Flow chapter: lines drawn over the still photograph ----------
      Each run is a .flow-run group of two or three joined .flow-seg paths
      (shared endpoints, tapering stroke-width). Every segment hides behind
-     its own length (dasharray and dashoffset both equal to the length)
-     and is drawn back in, segment by segment, as the panel travels from
-     entering the viewport to sitting centred. A run's .flow-tail segment
-     instead grows with `beyond`, the same value that drives the
-     travelling light. The hidden state is set here, never in CSS, so the
-     lines simply show fully drawn if this script fails. The svg copies
-     the photograph's box and parallax transform so the graphic stays on
-     the car; the photo itself moves only by the parallax it already had. */
+     its own length (dasharray and dashoffset both equal to the length),
+     then draws in via a plain CSS transition, staggered per run, the
+     moment the panel is far enough into view. This used to be driven by a
+     hand-rolled scroll-position fraction (how far the panel's own rect
+     had travelled between window.innerHeight readings taken on every
+     scroll event). On a phone, showing/hiding the address bar changes
+     window.innerHeight out from under that math on every reversal, which
+     read as a jump, and could leave a run's whole start/end window never
+     reached, so only the first line ever drew. IntersectionObserver has
+     the browser do that geometry itself, natively, off real layout boxes,
+     with no vh anywhere in it: draw in past a visibility threshold, undo
+     it below that threshold, nothing else. */
   (function () {
     var panel = document.querySelector('.panel--flow');
     if (!panel) return;
@@ -427,8 +431,8 @@
 
     /* .flow-run--side (the door-mirror runs) is display:none below 700px,
        see styles.css: cover-fit crops them off the visible slice on a
-       phone. Skip them there instead of paying for dash-offset math on
-       every scroll frame for six paths nobody can see. */
+       phone. Skip them there instead of animating six paths nobody can
+       see. */
     var hideSideRuns = window.matchMedia('(max-width: 700px)').matches;
     var runEls = [].slice.call(svg.querySelectorAll('.flow-run')).filter(function (g) {
       return !(hideSideRuns && g.classList.contains('flow-run--side'));
@@ -436,152 +440,88 @@
     if (!runEls.length) return;
 
     var SVG_NS = 'http://www.w3.org/2000/svg';
-    var LIGHT = 60; /* length of the travelling light, in path units */
+    var DRAW_MS = 1200;
+    var STEP_MS = 90; /* stagger between one run starting and the next */
+    var EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'; /* matches --ease in styles.css */
 
-    /* Wide faint body under each gold run, and a light that will travel
-       it. Both are drawn from one continuous path stitched together from
-       the run's own segments, so they share its full geometry. */
+    /* Wide faint body under each gold run, drawn from one continuous path
+       stitched together from the run's own segments, so it shares its
+       full geometry and draws in step with it. */
     var under = document.createElementNS(SVG_NS, 'g');
-    var lights = document.createElementNS(SVG_NS, 'g');
     var runs = runEls.map(function (g, i) {
-      var segs = [].slice.call(g.querySelectorAll('.flow-seg')).map(function (path) {
-        return { path: path, len: path.getTotalLength(), tail: path.classList.contains('flow-tail') };
-      });
-      var bodyLen = 0;
-      var tailSeg = null;
-      segs.forEach(function (seg) {
-        if (seg.tail) { tailSeg = seg; } else { bodyLen += seg.len; }
-      });
-      var fullD = segs.map(function (seg) { return seg.path.getAttribute('d'); })
+      var segs = [].slice.call(g.querySelectorAll('.flow-seg'));
+      var delay = i * STEP_MS;
+      var fullD = segs.map(function (path) { return path.getAttribute('d'); })
         .reduce(function (acc, d, idx) {
           return idx === 0 ? d : acc + ' ' + d.replace(/^M\s*[-\d.]+[,\s]+[-\d.]+\s*/, '');
         }, '');
       var fullPath = document.createElementNS(SVG_NS, 'path');
       fullPath.setAttribute('d', fullD);
-      var fullLen = fullPath.getTotalLength();
-
-      /* Staggered windows: nothing draws until the panel's top edge is a
-         fifth of the way up the viewport (start begins at 0.2), each run
-         starts a little later than the last, and the last one lands
-         exactly as the panel centres (end reaches 1 at the final run). */
-      var run = {
-        segs: segs, bodyLen: bodyLen, tailSeg: tailSeg, fullLen: fullLen,
-        drip: g.querySelector('.flow-drip'), body: null, light: null,
-        start: 0.2 + i * 0.05, end: Math.min(1, 0.75 + i * 0.03)
-      };
+      var body = null;
       if (g.classList.contains('is-gold')) {
-        run.body = fullPath.cloneNode(false);
-        run.body.setAttribute('class', 'flow-under');
-        under.appendChild(run.body);
+        body = fullPath.cloneNode(false);
+        body.setAttribute('class', 'flow-under');
+        body.style.transition = 'stroke-dashoffset ' + DRAW_MS + 'ms ' + EASE + ' ' + delay + 'ms';
+        under.appendChild(body);
       }
-      if (g.hasAttribute('data-light')) {
-        run.light = fullPath.cloneNode(false);
-        run.light.setAttribute('class', 'flow-light');
-        run.light.style.strokeDasharray = LIGHT + ' ' + fullLen;
-        run.light.style.strokeDashoffset = LIGHT;
-        lights.appendChild(run.light);
-      }
-      return run;
+      var lengths = segs.map(function (path) { return path.getTotalLength(); });
+      segs.forEach(function (path, idx) {
+        path.style.transition = 'stroke-dashoffset ' + DRAW_MS + 'ms ' + EASE + ' ' + (delay + idx * 40) + 'ms';
+      });
+      return {
+        segs: segs, lengths: lengths, body: body, bodyLen: body ? fullPath.getTotalLength() : 0,
+        drip: g.querySelector('.flow-drip'), delay: delay
+      };
     });
     svg.insertBefore(under, svg.firstChild);
-    svg.appendChild(lights);
-
-    function setSegOffset(seg, offset) {
-      seg.path.style.strokeDashoffset = offset.toFixed(1);
-    }
 
     function armHidden() {
       runs.forEach(function (run) {
-        run.segs.forEach(function (seg) {
-          seg.path.style.strokeDasharray = seg.len;
-          setSegOffset(seg, seg.len);
+        run.segs.forEach(function (path, idx) {
+          var len = run.lengths[idx];
+          path.style.strokeDasharray = len;
+          path.style.strokeDashoffset = len;
         });
         if (run.body) {
-          run.body.style.strokeDasharray = run.fullLen;
-          run.body.style.strokeDashoffset = run.fullLen;
+          run.body.style.strokeDasharray = run.bodyLen;
+          run.body.style.strokeDashoffset = run.bodyLen;
         }
-        if (run.drip) run.drip.style.opacity = 0;
+        if (run.drip) {
+          run.drip.style.transition = 'opacity 400ms ease ' + (run.delay + DRAW_MS) + 'ms';
+          run.drip.style.opacity = 0;
+        }
       });
     }
 
-    /* Ease-in-out, not ease-out: keeps the first frames of each run's
-       draw sparse instead of front-loading the line the moment its
-       window opens. */
-    function easeInOut(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
-    function clamp01(v) { return Math.max(0, Math.min(1, v)); }
-
-    var ticking = false;
-    var fallbackTimer = null;
-
-    /* Every value below is a pure function of where the panel sits, so
-       the lines retract on the way back up and nothing runs on a timer. */
-    function update() {
-      ticking = false;
-      if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = null; }
-      svg.style.transform = img.style.transform;
-      var vh = window.innerHeight;
-      var rect = panel.getBoundingClientRect();
-      if (rect.bottom < -200 || rect.top > vh + 200) return;
-      /* 0 as the panel's top edge meets the viewport bottom, 1 once the
-         panel is centred. */
-      var centredTop = (vh - rect.height) / 2;
-      var progress = clamp01((vh - rect.top) / (vh - centredTop));
-      /* 0 at centred, 1 once the panel has travelled two thirds of its
-         height further up. Drives the light and the drip tails. */
-      var beyond = clamp01((centredTop - rect.top) / (rect.height * 0.66));
+    function draw() {
       runs.forEach(function (run) {
-        var t = easeInOut(clamp01((progress - run.start) / (run.end - run.start)));
-        var bodyDrawn = run.bodyLen * t;
-        var drawnSoFar = 0;
-        run.segs.forEach(function (seg) {
-          if (seg.tail) return;
-          var segDrawn = clamp01((bodyDrawn - drawnSoFar) / seg.len) * seg.len;
-          setSegOffset(seg, seg.len - segDrawn);
-          drawnSoFar += seg.len;
-        });
-        var tailDrawn = 0;
-        if (run.tailSeg) {
-          tailDrawn = run.tailSeg.len * beyond;
-          setSegOffset(run.tailSeg, run.tailSeg.len - tailDrawn);
-          if (run.drip) run.drip.style.opacity = clamp01((beyond - 0.5) / 0.5).toFixed(2);
-        }
-        if (run.body) {
-          run.body.style.strokeDashoffset = (run.fullLen - (bodyDrawn + tailDrawn)).toFixed(1);
-        }
-        if (run.light) {
-          run.light.style.strokeDashoffset = (LIGHT - (run.fullLen + LIGHT) * beyond).toFixed(1);
-        }
+        run.segs.forEach(function (path) { path.style.strokeDashoffset = 0; });
+        if (run.body) run.body.style.strokeDashoffset = 0;
+        if (run.drip) run.drip.style.opacity = 1;
       });
     }
 
-    function onScroll() {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(update);
-      /* rAF can be throttled to nothing (background tab, hidden pane,
-         some programmatic scrolls). This fires once, only if the rAF
-         hasn't already run, so update() still runs exactly once per
-         scroll burst either way. */
-      fallbackTimer = setTimeout(function () {
-        if (ticking) update();
-      }, 120);
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    window.addEventListener('load', update);
-    window.addEventListener('pageshow', update);
-    if (img.complete) {
-      update();
-    } else {
-      img.addEventListener('load', update);
-    }
-    /* This drawn effect always animates, on purpose: it is the site's one
-       signature flourish, and the client wants every visitor to see it
-       draw in, so it does not defer to prefers-reduced-motion the way the
-       rest of the page's motion (parallax, reveal-on-scroll) does. */
     armHidden();
-    update();
+
+    /* Keep the svg locked to the photograph as the parallax block shifts
+       it; this is a plain copy, no scroll-position math of its own. */
+    function syncTransform() {
+      svg.style.transform = img.style.transform;
+    }
+    window.addEventListener('scroll', syncTransform, { passive: true });
+    window.addEventListener('resize', syncTransform);
+    syncTransform();
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          draw();
+        } else {
+          armHidden();
+        }
+      });
+    }, { threshold: 0.35 });
+    observer.observe(panel);
   })();
 
   /* ---------- Reveal on scroll ---------- */
@@ -637,4 +577,25 @@
 
     restEls.forEach(function (el) { observer.observe(el); });
   }
+
+  /* ---------- Gallery: gold frame on touch, not just :hover ----------
+     :active alone was unreliable for this on a real phone even with a
+     touch listener bound elsewhere on the page, so this drives the same
+     look with a class instead: added on touchstart, removed on
+     touchend/touchcancel, backed by a plain JS state instead of the
+     browser's own activation heuristics. */
+  (function () {
+    var items = document.querySelectorAll('.gallery-item');
+    if (!items.length) return;
+    items.forEach(function (item) {
+      item.addEventListener('touchstart', function () {
+        item.classList.add('is-touched');
+      }, { passive: true });
+      ['touchend', 'touchcancel'].forEach(function (evt) {
+        item.addEventListener(evt, function () {
+          item.classList.remove('is-touched');
+        }, { passive: true });
+      });
+    });
+  })();
 })();

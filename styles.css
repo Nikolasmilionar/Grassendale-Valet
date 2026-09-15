@@ -751,7 +751,8 @@ main { position: relative; }
   transition: transform 300ms var(--ease), border-color 300ms var(--ease);
 }
 .gallery-item:hover .gallery-frame,
-.gallery-item:active .gallery-frame {
+.gallery-item:active .gallery-frame,
+.gallery-item.is-touched .gallery-frame {
   transform: scale(1.03);
   border-color: var(--accent);
   z-index: 2;
