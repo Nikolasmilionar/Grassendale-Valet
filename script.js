@@ -440,7 +440,14 @@
     if (!runEls.length) return;
 
     var SVG_NS = 'http://www.w3.org/2000/svg';
-    var DRAW_MS = 1200;
+    /* Slow and triggered early: a fast mobile flick can cross this whole
+       100svh panel in well under a second, so a short draw or one that
+       waits until the panel is mostly centred plays out mostly off
+       screen, behind or ahead of the visible window. Starting at 15%
+       visible instead of 35%, and drawing over 2.2s instead of 1.2s,
+       gives it a much better chance of still being mid-draw for however
+       long that scroll actually takes. */
+    var DRAW_MS = 2200;
     var STEP_MS = 90; /* stagger between one run starting and the next */
     var EASE = 'cubic-bezier(0.22, 1, 0.36, 1)'; /* matches --ease in styles.css */
 
@@ -520,7 +527,7 @@
           armHidden();
         }
       });
-    }, { threshold: 0.35 });
+    }, { threshold: 0.15 });
     observer.observe(panel);
   })();
 
